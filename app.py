@@ -286,7 +286,7 @@ if predict:
         "points_gap": abs(winner_pts - loser_pts),
     }])
 
-    proba = float(clf.predict_proba(X_new)[0][1])
+    proba = float(model.predict_proba(X_new)[0][1])
 
     fav = "Player A" if proba >= 0.5 else "Player B"
     confidence = abs(proba - 0.5) * 2  # 0..1
@@ -338,4 +338,5 @@ st.markdown("""
   <a href="https://github.com/mayank-goyal09" target="_blank" style="color:#6EE7FF; text-decoration:none; font-weight:900;">GitHub</a>
 </div>
 """, unsafe_allow_html=True)
+
 
