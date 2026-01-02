@@ -5,8 +5,49 @@ import joblib
 st.set_page_config(page_title="🎾 CourtCast — Tennis Match Predictor", page_icon="🎾", layout="wide")
 
 # ===== Load model =====
-clf = joblib.load("tennis_rf_pipeline.joblib")
+import os
+import tempfile
+import streamlit as st
+import joblib
+import requests
+import pandas as pd
 
+# ------------------------
+# MODEL DOWNLOAD + LOAD
+# ------------------------
+def download_gdrive(file_id, output_path):
+    url = "https://drive.google.com/uc?export=download"
+    session = requests.Session()
+    response = session.get(url, params={"id": file_id}, stream=True)
+    response.raise_for_status()
+    token = None
+    for k,v in response.cookies.items():
+        if k.startswith("download_warning"):
+            token = v
+            break
+    if token:
+        response = session.get(url, params={"id": file_id, "confirm": token}, stream=True)
+    with open(output_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=32768):
+            if chunk:
+                f.write(chunk)
+
+@st.cache_resource
+def load_model():
+    file_id = "1HwtJ6nJwMTs2MmAFPsNPpCZ6oXe6cF0T"
+    model_name = "final_model.pkl"
+
+    temp_dir = tempfile.gettempdir()
+    model_path = os.path.join(temp_dir, model_name)
+
+    if not os.path.exists(model_path):
+        with st.spinner("⬇️ Downloading model..."):
+            download_gdrive(file_id, model_path)
+
+    model = joblib.load(model_path)
+    return model
+
+model = load_model()
 # ===== Funky Tennis Theme (court + ball + neon) =====
 COURT = "#1DB954"        # court green
 COURT_DARK = "#0E7A3A"
@@ -297,3 +338,4 @@ st.markdown("""
   <a href="https://github.com/mayank-goyal09" target="_blank" style="color:#6EE7FF; text-decoration:none; font-weight:900;">GitHub</a>
 </div>
 """, unsafe_allow_html=True)
+
